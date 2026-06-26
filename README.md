@@ -92,11 +92,11 @@ mi-barrio-seguro/
 ## 🔧 Tecnologías
 
 - **Frontend**: HTML5, CSS3, JavaScript ES6+
-- **Mapas**: Leaflet.js
+- **Mapas**: ArcGIS JavaScript API v4.27
 - **UI Framework**: Bootstrap 5
 - **Iconos**: Font Awesome
 - **Almacenamiento**: LocalStorage (temporal)
-- **Mapas Base**: ArcGIS Services (Catastro Bogotá)
+- **Mapas Base**: ArcGIS Services (Catastro de Bogotá - Alcaldía Mayor)
 
 ## 📈 Próximas Funcionalidades
 
