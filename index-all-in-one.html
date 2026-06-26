@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- ===== META INFORMACIÓN ===== -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mi Barrio Seguro - Plataforma de Seguridad Ciudadana de Bogotá">
+    <title>Mi Barrio Seguro - Mapa de Seguridad Bogotá</title>
+
+    <!-- ===== LIBRERÍAS EXTERNAS ===== -->
+    <!-- Bootstrap CSS para diseño responsive -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- ArcGIS API CSS para mapas profesionales -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/themes/light/main.css">
+
+    <!-- ===== ESTILOS PERSONALIZADOS ===== -->
+    <style>
+        /* ===== RESET Y ESTILOS GLOBALES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        /* ===== CONTENEDOR PRINCIPAL ===== */
+        .main-container {
+            height: calc(100vh - 56px); /* Altura total menos altura de navbar */
+        }
+
+        /* ===== BARRA DE NAVEGACIÓN ===== */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        /* ===== SIDEBAR (PANEL LATERAL IZQUIERDO) ===== */
+        .sidebar {
+            background-color: #ffffff;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        /* ===== MAPA (CONTENEDOR PRINCIPAL) ===== */
+        #map {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== PANELS PLEGABLES (ACCORDION) ===== */
+        .accordion-item {
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .accordion-button {
+            background-color: #f8f9fa;
+            border: none;
+            padding: 12px 15px;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #e7f1ff;
+            color: #0c63e4;
+            box-shadow: none;
+        }
+
+        .accordion-body {
+            padding: 15px;
+            background-color: #fafafa;
+        }
+
+        /* ===== FORMULARIOS ===== */
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0c63e4;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* ===== BOTONES ===== */
+        .btn {
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* ===== FILTROS CON CHIPS ===== */
+        .filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+
+        .chip:hover {
+            background-color: #e0e0e0;
+        }
+
+        .chip.active {
+            background-color: #0c63e4;
+            color: #fff;
+        }
+
+        /* ===== TARJETAS DE ESTADÍSTICAS ===== */
+        .stat-card {
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* Gradientes únicos para cada tarjeta */
+        .stat-card:nth-child(1) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* ===== LISTA DE REPORTES RECIENTES ===== */
+        .recent-item {
+            padding: 10px;
+            background-color: #fff;
+            border-left: 4px solid #0c63e4;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .recent-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+
+        /* ===== NOTIFICACIONES ===== */
+        .alert {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+        }
+
+        /* ===== SCROLLBAR PERSONALIZADO ===== */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== BARRA DE NAVEGACIÓN ===== -->
+    <nav class="navbar navbar-dark bg-primary shadow">
+        <div class="container-fluid">
+            <!-- Logo y título principal -->
+            <span class="navbar-brand mb-0"><i class="fas fa-shield-alt"></i> Mi Barrio Seguro</span>
+            <!-- Subtítulo descriptivo -->
+            <span class="navbar-text text-white small">Plataforma de Seguridad Ciudadana - Bogotá</span>
+        </div>
+    </nav>
+
+    <!-- ===== CONTENEDOR PRINCIPAL CON DOS COLUMNAS ===== -->
+    <div class="container-fluid main-container">
+        <div class="row h-100">
+            <!-- ===== SIDEBAR: PANEL LATERAL IZQUIERDO ===== -->
+            <div class="col-lg-3 sidebar">
+                <!-- Accordion con múltiples secciones plegables -->
+                <div class="accordion" id="accordionPanel">
+
+                    <!-- PANEL 1: BÚSQUEDA Y FILTROS -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#search">
+                                <i class="fas fa-search"></i> Buscar & Filtrar
+                            </button>
+                        </h2>
+                        <div id="search" class="accordion-collapse collapse show" data-bs-parent="#accordionPanel">
+                            <div class="accordion-body">
+                                <!-- Campo de búsqueda por ubicación -->
+                                <div class="mb-3">
+                                    <input type="text" class="form-control form-control-sm" id="searchLocation"
+                                           placeholder="Buscar ubicación..." >
+                                    <small class="text-muted">ej: Chapinero, Calle 72</small>
+                                </div>
+                                <!-- Filtros tipo chip para tipos de delitos -->
+                                <div class="mb-3">
+                                    <label class="form-label small">Filtrar por tipo:</label>
+                                    <div class="filter-chips">
+                                        <button class="chip active" data-filter="all">Todos</button>
+                                        <button class="chip" data-filter="Robo">Robo</button>
+                                        <button class="chip" data-filter="Hurto">Hurto</button>
+                                        <button class="chip" data-filter="Asalto">Asalto</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2: FORMULARIO PARA REPORTAR INCIDENTE -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#report">
+                                <i class="fas fa-triangle-exclamation"></i> Reportar Incidente
+                            </button>
+                        </h2>
+                        <div id="report" class="accordion-collapse collapse" data-bs-parent="#accordionPanel">
+                            <div class="accordion-body">
+                                <form id="reportForm">
+                                    <!-- Seleccionar tipo de delito -->
+                                    <div class="mb-2">
+                                        <label class="form-label small">Tipo de delito</label>
+                                        <select class="form-select form-select-sm" id="reportType" required>
+                                            <option value="">Seleccionar...</option>
+                                            <option value="Robo">Robo</option>
+                                            <option value="Hurto">Hurto</option>
+                                            <option value="Asalto">Asalto</option>
+                                            <option value="Violencia">Violencia</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <!-- Ingresar ubicación del incidente -->
+                                    <div class="mb-2">
+                                        <label class="form-label small">Ubicación</label>
+                                        <input type="text" class="form-control form-control-sm" id="reportLocation"
+                                               placeholder="Barrio, calle..." required>
+                                    </div>
+                                    <!-- Seleccionar fecha del incidente -->
+                                    <div class="mb-2">
+                                        <label class="form-label small">Fecha</label>
+                                        <input type="date" class="form-control form-control-sm" id="reportDate" required>
+                                    </div>
+                                    <!-- Ingresar hora del incidente -->
+                                    <div class="mb-2">
+                                        <label class="form-label small">Hora</label>
+                                        <input type="time" class="form-control form-control-sm" id="reportTime" required>
+                                    </div>
+                                    <!-- Descripción opcional del incidente -->
+                                    <div class="mb-2">
+                                        <label class="form-label small">Descripción (opcional)</label>
+                                        <textarea class="form-control form-control-sm" id="reportDesc"
+                                                  rows="2" placeholder="Detalles..."></textarea>
+                                    </div>
+                                    <!-- Botón de envío del formulario -->
+                                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                                        <i class="fas fa-paper-plane"></i> Enviar Reporte
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 3: ESTADÍSTICAS EN VIVO -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stats">
+                                <i class="fas fa-chart-bar"></i> Estadísticas
+                            </button>
+                        </h2>
+                        <div id="stats" class="accordion-collapse collapse" data-bs-parent="#accordionPanel">
+                            <div class="accordion-body">
+                                <!-- Tarjeta 1: Total de reportes acumulados -->
+                                <div class="stat-card">
+                                    <div class="stat-label">Total Reportes</div>
+                                    <div class="stat-value" id="totalReports">0</div>
+                                </div>
+                                <!-- Tarjeta 2: Reportes del día actual -->
+                                <div class="stat-card">
+                                    <div class="stat-label">Hoy</div>
+                                    <div class="stat-value" id="todayReports">0</div>
+                                </div>
+                                <!-- Tarjeta 3: Zona con mayor incidencia -->
+                                <div class="stat-card">
+                                    <div class="stat-label">Zona Crítica</div>
+                                    <div class="stat-value small" id="criticalZone">-</div>
+                                </div>
+                                <!-- Gráfico de estadísticas por tipo de delito -->
+                                <canvas id="chartDelitos" style="max-height: 200px; margin-top: 15px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 4: LISTA DE REPORTES RECIENTES -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#recent">
+                                <i class="fas fa-history"></i> Reportes Recientes
+                            </button>
+                        </h2>
+                        <div id="recent" class="accordion-collapse collapse" data-bs-parent="#accordionPanel">
+                            <div class="accordion-body" style="max-height: 300px; overflow-y: auto;">
+                                <!-- Lista dinámicamente rellenada de reportes -->
+                                <div id="recentList">
+                                    <p class="text-muted small">No hay reportes aún</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN PRINCIPAL -->
+                <div class="btn-group w-100 mt-3 gap-2 d-flex flex-column">
+                    <!-- Descargar datos en formato CSV -->
+                    <button class="btn btn-success btn-sm" id="downloadBtn">
+                        <i class="fas fa-download"></i> Descargar CSV
+                    </button>
+                    <!-- Limpiar todos los datos locales -->
+                    <button class="btn btn-info btn-sm" id="clearBtn">
+                        <i class="fas fa-trash"></i> Limpiar Datos
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== MAPA: PANEL PRINCIPAL DERECHO ===== -->
+            <div class="col-lg-9 p-0">
+                <!-- Contenedor del mapa de ArcGIS JavaScript API -->
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS EXTERNOS ===== -->
+    <!-- Bootstrap JavaScript para componentes interactivos -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js para gráficos de estadísticas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- ArcGIS JavaScript API para mapas profesionales -->
+    <script src="https://js.arcgis.com/4.27/"></script>
+
+    <!-- ===== SCRIPT PRINCIPAL: TODO EL CÓDIGO EN JAVASCRIPT ===== -->
+    <script>
+        // ========================================
+        // SECCIÓN 1: CONFIGURACIÓN DEL MAPA CON ARCGIS
+        // ========================================
+
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/TileLayer",
+            "esri/layers/GraphicsLayer",
+            "esri/Graphic",
+            "esri/geometry/Point",
+            "esri/geometry/Extent",
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/symbols/SimpleLineSymbol",
+            "esri/widgets/LayerList",
+            "esri/widgets/Expand",
+            "esri/Color"
+        ], function(Map, MapView, TileLayer, GraphicsLayer, Graphic, Point, Extent, SimpleMarkerSymbol, SimpleLineSymbol, LayerList, Expand, Color) {
+
+            // Crear un mapa vacío (sin capa base por defecto)
+            const map = new Map();
+
+            // ===== DEFINIR LÍMITES GEOGRÁFICOS DE BOGOTÁ =====
+            // Esto evita que el usuario haga pan o zoom fuera de la ciudad
+            const bogotaBounds = new Extent({
+                xmin: -74.2566,  // Límite oeste
+                ymin: 4.5206,    // Límite sur
+                xmax: -73.8883,  // Límite este
+                ymax: 4.9050,    // Límite norte
+                spatialReference: { wkid: 4326 }
+            });
+
+            // ===== CREAR VISTA DEL MAPA CENTRADA EN BOGOTÁ =====
+            const view = new MapView({
+                container: "map",              // ID del contenedor HTML
+                map: map,
+                center: [-74.0721, 4.7110],   // Coordenadas del centro (Bogotá)
+                zoom: 11,                      // Nivel de zoom inicial
+                constraints: {
+                    extent: bogotaBounds,      // Limitar área visible
+                    minZoom: 9,                // Zoom mínimo (vista general)
+                    maxZoom: 18                // Zoom máximo (nivel de calles)
+                }
+            });
+
+            // ===== AGREGAR TODAS LAS CAPAS DE MAPA DEL CATASTRO BOGOTÁ =====
+
+            // Mapa Base - Colorido (tradicional)
+            const mapaBase = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_3857/MapServer",
+                title: "Mapa Base",
+                visible: false  // Inicialmente oculto
+            });
+            map.add(mapaBase);
+
+            // Mapa Base 4686 - Proyección diferente
+            const mapa4686 = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_4686/MapServer",
+                title: "Mapa Base 4686",
+                visible: false
+            });
+            map.add(mapa4686);
+
+            // Mapa Gris - VISIBLE POR DEFECTO (mejor para análisis de datos)
+            const mapaGris = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_gris/MapServer",
+                title: "Mapa Gris",
+                visible: true  // Este es el mapa visible al iniciar
+            });
+            map.add(mapaGris);
+
+            // Mapa Oscuro
+            const mapaOscuro = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_oscuro_3857/MapServer",
+                title: "Mapa Oscuro",
+                visible: false
+            });
+            map.add(mapaOscuro);
+
+            // Mapa Toner - Estilo minimalista
+            const mapaToner = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_toner/MapServer",
+                title: "Mapa Toner",
+                visible: false
+            });
+            map.add(mapaToner);
+
+            // Mapa Híbrido - Satélite + etiquetas
+            const mapaHibrido = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_hibrido/MapServer",
+                title: "Mapa Híbrido",
+                visible: false
+            });
+            map.add(mapaHibrido);
+
+            // Mapa Referencia
+            const mapaReferencia = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/Mapa_Referencia/MapServer",
+                title: "Mapa Referencia",
+                visible: false
+            });
+            map.add(mapaReferencia);
+
+            // Mapa de Municipios de Cundinamarca (contexto regional)
+            const mapaMunicipios = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapabasemunicipioscundinamarca/MapServer",
+                title: "Mapa Municipios Cundinamarca",
+                visible: false
+            });
+            map.add(mapaMunicipios);
+
+            // ===== CAPA DE GRÁFICOS PARA MOSTRAR REPORTES =====
+            const reportsGraphicsLayer = new GraphicsLayer({
+                title: "Reportes Ciudadanos",
+                visible: true
+            });
+            map.add(reportsGraphicsLayer);
+
+            // ===== WIDGET DE LISTA DE CAPAS =====
+            // Permite al usuario cambiar entre capas
+            const layerList = new LayerList({
+                view: view
+            });
+
+            const layerListExpand = new Expand({
+                view: view,
+                content: layerList,
+                expandIconClass: "esri-icon-layers",
+                expandTooltip: "Capas"
+            });
+            view.ui.add(layerListExpand, "top-right");
+
+            // ===== ALMACENAMIENTO DE REPORTES EN MEMORIA =====
+            let reports = [];
+
+            // ===== CARGAR DATOS DE EJEMPLO =====
+            function loadExampleData() {
+                const exampleDelitos = [
+                    { lat: 4.7110, lng: -74.0721, type: 'Robo', risk: 'Alto' },
+                    { lat: 4.7200, lng: -74.0650, type: 'Hurto', risk: 'Crítico' },
+                    { lat: 4.6800, lng: -74.0800, type: 'Robo', risk: 'Alto' },
+                    { lat: 4.7500, lng: -74.1000, type: 'Asalto', risk: 'Moderado' },
+                    { lat: 4.6500, lng: -74.0500, type: 'Robo', risk: 'Moderado' },
+                    { lat: 4.7300, lng: -74.0900, type: 'Hurto', risk: 'Alto' },
+                    { lat: 4.6900, lng: -74.0400, type: 'Robo', risk: 'Alto' }
+                ];
+
+                // Agregar cada punto de delito como marcador en el mapa
+                exampleDelitos.forEach((delito) => {
+                    const point = new Point({
+                        longitude: delito.lng,
+                        latitude: delito.lat
+                    });
+
+                    // Colorear marcador según nivel de riesgo
+                    const color = delito.risk === 'Alto' || delito.risk === 'Crítico'
+                        ? new Color([220, 53, 69, 0.8])    // Rojo para alto riesgo
+                        : new Color([255, 193, 7, 0.8]);   // Amarillo para riesgo moderado
+
+                    // Definir símbolo (icono) del marcador
+                    const markerSymbol = new SimpleMarkerSymbol({
+                        color: color,
+                        size: "12px",
+                        outline: new SimpleLineSymbol({
+                            color: [0, 0, 0],
+                            width: 1
+                        })
+                    });
+
+                    // Crear gráfico (marcador) en el mapa
+                    const graphic = new Graphic({
+                        geometry: point,
+                        symbol: markerSymbol,
+                        attributes: {
+                            type: delito.type,
+                            risk: delito.risk
+                        },
+                        popupTemplate: {
+                            title: "{type}",
+                            content: "Riesgo: {risk}"
+                        }
+                    });
+
+                    reportsGraphicsLayer.add(graphic);
+                });
+
+                reports = exampleDelitos;
+            }
+
+            // ===== FUNCIÓN PARA AGREGAR NUEVO REPORTE DESDE FORMULARIO =====
+            window.addReport = function(data) {
+                // Generar coordenadas aproximadas alrededor del centro de Bogotá
+                const lat = 4.7110 + (Math.random() - 0.5) * 0.1;
+                const lng = -74.0721 + (Math.random() - 0.5) * 0.1;
+
+                const point = new Point({
+                    longitude: lng,
+                    latitude: lat
+                });
+
+                // Marcador rojo para nuevos reportes
+                const markerSymbol = new SimpleMarkerSymbol({
+                    color: new Color([220, 53, 69, 0.9]),
+                    size: "10px",
+                    outline: new SimpleLineSymbol({
+                        color: [0, 0, 0],
+                        width: 1
+                    })
+                });
+
+                // Crear gráfico con información del reporte
+                const graphic = new Graphic({
+                    geometry: point,
+                    symbol: markerSymbol,
+                    attributes: {
+                        type: data.type,
+                        location: data.location,
+                        date: data.date
+                    },
+                    popupTemplate: {
+                        title: "{type}",
+                        content: "Ubicación: {location}<br>Fecha: {date}"
+                    }
+                });
+
+                reportsGraphicsLayer.add(graphic);
+                reports.push({ lat, lng, type: data.type, location: data.location });
+            };
+
+            // Cargar datos de ejemplo al iniciar
+            loadExampleData();
+        });
+
+        // ========================================
+        // SECCIÓN 2: INTERACTIVIDAD Y GESTIÓN DE DATOS
+        // ========================================
+
+        // Variables globales para gestión de estado
+        let allReports = [];        // Array de todos los reportes
+        let chartInstance = null;   // Instancia del gráfico
+        let currentFilter = 'all';  // Filtro actual aplicado
+
+        // Inicializar cuando el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFilters();      // Configurar filtros
+            initializeSearch();       // Configurar búsqueda
+            loadStoredReports();      // Cargar reportes guardados
+            updateChart();            // Actualizar gráfico
+            setupClearButton();       // Configurar botón limpiar
+            setupFormSubmit();        // Configurar envío de formulario
+        });
+
+        // ===== INICIALIZAR FILTROS POR TIPO DE DELITO =====
+        function initializeFilters() {
+            document.querySelectorAll('.filter-chips .chip').forEach(chip => {
+                chip.addEventListener('click', (e) => {
+                    // Remover clase "active" de todos los chips
+                    document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
+                    // Agregar clase "active" al chip clickeado
+                    e.target.classList.add('active');
+                    // Actualizar filtro actual
+                    currentFilter = e.target.dataset.filter;
+                    // Aplicar filtro
+                    filterReports();
+                });
+            });
+        }
+
+        // ===== APLICAR FILTRO A LOS REPORTES =====
+        function filterReports() {
+            // Filtrar reportes según tipo seleccionado
+            const filtered = currentFilter === 'all'
+                ? allReports
+                : allReports.filter(r => r.type === currentFilter);
+
+            // Mostrar últimos 5 reportes filtrados
+            displayRecentReports(filtered.slice(-5).reverse());
+            // Actualizar estadísticas con datos filtrados
+            updateStats(filtered);
+        }
+
+        // ===== BÚSQUEDA POR UBICACIÓN EN TIEMPO REAL =====
+        function initializeSearch() {
+            document.getElementById('searchLocation').addEventListener('input', (e) => {
+                // Obtener texto de búsqueda en minúsculas
+                const query = e.target.value.toLowerCase();
+                // Filtrar reportes que coincidan con la búsqueda
+                const filtered = allReports.filter(r =>
+                    r.location.toLowerCase().includes(query)
+                );
+                // Mostrar reportes filtrados
+                displayRecentReports(filtered.slice(-5).reverse());
+            });
+        }
+
+        // ===== MOSTRAR LISTA DE REPORTES RECIENTES =====
+        function displayRecentReports(reports) {
+            const list = document.getElementById('recentList');
+
+            if (reports.length === 0) {
+                list.innerHTML = '<p class="text-muted small">No hay reportes</p>';
+                return;
+            }
+
+            // Generar HTML para cada reporte
+            list.innerHTML = reports.map(r => `
+                <div class="recent-item">
+                    <span class="badge bg-danger">${r.type}</span>
+                    <small class="text-muted ms-2">${r.date}</small>
+                    <div class="recent-location"><i class="fas fa-map-pin"></i> ${r.location}</div>
+                </div>
+            `).join('');
+        }
+
+        // ===== ACTUALIZAR ESTADÍSTICAS =====
+        function updateStats(reports = allReports) {
+            // Obtener fecha actual
+            const today = new Date().toISOString().split('T')[0];
+            // Contar reportes de hoy
+            const todayCount = reports.filter(r => r.date === today).length;
+
+            // Actualizar totales
+            document.getElementById('totalReports').textContent = reports.length;
+            document.getElementById('todayReports').textContent = todayCount;
+
+            // Encontrar zona crítica (ubicación con más reportes)
+            const zonaCounts = {};
+            reports.forEach(r => {
+                zonaCounts[r.location] = (zonaCounts[r.location] || 0) + 1;
+            });
+            const criticalZone = Object.entries(zonaCounts).sort((a, b) => b[1] - a[1])[0];
+
+            if (criticalZone) {
+                document.getElementById('criticalZone').textContent = `${criticalZone[0]} (${criticalZone[1]})`;
+            }
+        }
+
+        // ===== ACTUALIZAR GRÁFICO DE ESTADÍSTICAS =====
+        function updateChart() {
+            const ctx = document.getElementById('chartDelitos');
+            if (!ctx) return;
+
+            // Contar reportes por tipo de delito
+            const tipos = {};
+            allReports.forEach(r => {
+                tipos[r.type] = (tipos[r.type] || 0) + 1;
+            });
+
+            // Destruir gráfico anterior si existe
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Crear nuevo gráfico de barras con Chart.js
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(tipos),
+                    datasets: [{
+                        label: 'Reportes',
+                        data: Object.values(tipos),
+                        backgroundColor: [
+                            'rgba(220, 53, 69, 0.7)',
+                            'rgba(255, 193, 7, 0.7)',
+                            'rgba(23, 162, 184, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // ===== CARGAR REPORTES GUARDADOS EN LOCALSTORAGE =====
+        function loadStoredReports() {
+            // Obtener reportes del almacenamiento local
+            const stored = JSON.parse(localStorage.getItem('mibarrioseguro_reports') || '[]');
+            allReports = stored;
+            // Mostrar últimos reportes
+            displayRecentReports(allReports.slice(-5).reverse());
+            // Actualizar UI
+            updateStats();
+            updateChart();
+        }
+
+        // ===== CONFIGURAR ENVÍO DE FORMULARIO =====
+        function setupFormSubmit() {
+            const reportForm = document.getElementById('reportForm');
+
+            if (reportForm) {
+                reportForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+
+                    // Obtener datos del formulario
+                    const reportData = {
+                        type: document.getElementById('reportType').value,
+                        location: document.getElementById('reportLocation').value,
+                        date: document.getElementById('reportDate').value,
+                        time: document.getElementById('reportTime').value,
+                        description: document.getElementById('reportDesc').value || ''
+                    };
+
+                    // Validar que estén completos los campos requeridos
+                    if (!reportData.type || !reportData.location || !reportData.date || !reportData.time) {
+                        showAlert('Por favor completa todos los campos', 'warning');
+                        return;
+                    }
+
+                    // Agregar nuevo reporte al array
+                    allReports.push({
+                        ...reportData,
+                        id: Date.now(),
+                        timestamp: new Date().toISOString()
+                    });
+
+                    // Guardar en localStorage
+                    localStorage.setItem('mibarrioseguro_reports', JSON.stringify(allReports));
+
+                    // Agregar al mapa
+                    if (typeof addReport === 'function') {
+                        addReport(reportData);
+                    }
+
+                    // Actualizar toda la UI
+                    displayRecentReports(allReports.slice(-5).reverse());
+                    updateStats();
+                    updateChart();
+
+                    // Limpiar formulario
+                    reportForm.reset();
+
+                    // Mostrar notificación de éxito
+                    showAlert('✅ Reporte enviado correctamente', 'success');
+                });
+            }
+        }
+
+        // ===== CONFIGURAR BOTÓN LIMPIAR DATOS =====
+        function setupClearButton() {
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                // Pedir confirmación antes de limpiar
+                if (confirm('¿Estás seguro de que deseas limpiar todos los datos?')) {
+                    // Eliminar datos del localStorage
+                    localStorage.removeItem('mibarrioseguro_reports');
+                    // Limpiar array
+                    allReports = [];
+                    // Recargar vista
+                    loadStoredReports();
+                    showAlert('Datos limpiados', 'info');
+                }
+            });
+        }
+
+        // ===== DESCARGA DE DATOS EN CSV =====
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            // Crear contenido CSV
+            const csv = "tipo,ubicacion,fecha,hora\n" +
+                allReports.map(r => `${r.type},"${r.location}",${r.date},${r.time}`).join('\n');
+
+            // Crear blob y descargar
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'reportes-seguridad.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+
+        // ===== FUNCIÓN PARA MOSTRAR NOTIFICACIONES =====
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.top = '80px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            document.body.appendChild(alertDiv);
+
+            // Remover notificación después de 3 segundos
+            setTimeout(() => alertDiv.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
