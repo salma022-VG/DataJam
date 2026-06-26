@@ -27,7 +27,7 @@ require([
     const mapaBase = new TileLayer({
         url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_3857/MapServer",
         title: "Mapa Base",
-        visible: true
+        visible: false
     });
     map.add(mapaBase);
 
@@ -41,7 +41,7 @@ require([
     const mapaGris = new TileLayer({
         url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_gris/MapServer",
         title: "Mapa Gris",
-        visible: false
+        visible: true
     });
     map.add(mapaGris);
 
