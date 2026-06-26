@@ -121,18 +121,23 @@ body {
     font-size: 18px;
 }
 
-/* Leaflet customizations */
-.leaflet-container {
+/* ArcGIS API customizations */
+.esri-view {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.leaflet-popup-content-wrapper {
+.esri-popup__header-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.esri-popup {
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-.leaflet-marker-icon {
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+.sidebar {
+    z-index: 100;
 }
 
 /* Responsive */
