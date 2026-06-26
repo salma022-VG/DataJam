@@ -1,0 +1,64 @@
+{
+  "delitos": [
+    {
+      "id": 1,
+      "tipo": "Robo",
+      "fecha": "2026-06-25",
+      "hora": "20:30",
+      "localidad": "Chapinero",
+      "barrio": "Pardo Rubio",
+      "latitud": 4.7110,
+      "longitud": -74.0721,
+      "riesgo": 0.8,
+      "descripcion": "Robo de celular"
+    },
+    {
+      "id": 2,
+      "tipo": "Hurto",
+      "fecha": "2026-06-25",
+      "hora": "18:45",
+      "localidad": "Puente Aranda",
+      "barrio": "Restrepo",
+      "latitud": 4.7200,
+      "longitud": -74.0650,
+      "riesgo": 0.9,
+      "descripcion": "Hurto en transporte público"
+    },
+    {
+      "id": 3,
+      "tipo": "Robo",
+      "fecha": "2026-06-24",
+      "hora": "22:00",
+      "localidad": "Santa Fe",
+      "barrio": "La Candelaria",
+      "latitud": 4.6800,
+      "longitud": -74.0800,
+      "riesgo": 0.7,
+      "descripcion": "Robo a transeúnte"
+    },
+    {
+      "id": 4,
+      "tipo": "Asalto",
+      "fecha": "2026-06-23",
+      "hora": "23:30",
+      "localidad": "Suba",
+      "barrio": "Suba",
+      "latitud": 4.7500,
+      "longitud": -74.1000,
+      "riesgo": 0.5,
+      "descripcion": "Asalto a comercio"
+    }
+  ],
+  "resumen_por_localidad": {
+    "Chapinero": { "total": 15, "riesgo_promedio": 0.75 },
+    "Puente Aranda": { "total": 22, "riesgo_promedio": 0.82 },
+    "Santa Fe": { "total": 18, "riesgo_promedio": 0.70 },
+    "Suba": { "total": 10, "riesgo_promedio": 0.60 }
+  },
+  "resumen_por_hora": {
+    "18-20": 8,
+    "20-22": 15,
+    "22-00": 20,
+    "00-02": 12
+  }
+}
