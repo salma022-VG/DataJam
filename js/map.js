@@ -7,14 +7,13 @@ require([
     "esri/geometry/Point",
     "esri/symbols/SimpleMarkerSymbol",
     "esri/symbols/SimpleLineSymbol",
-    "esri/widgets/BasemapToggle",
+    "esri/widgets/LayerList",
+    "esri/widgets/Expand",
     "esri/Color"
-], function(Map, MapView, TileLayer, GraphicsLayer, Graphic, Point, SimpleMarkerSymbol, SimpleLineSymbol, BasemapToggle, Color) {
+], function(Map, MapView, TileLayer, GraphicsLayer, Graphic, Point, SimpleMarkerSymbol, SimpleLineSymbol, LayerList, Expand, Color) {
 
-    // Create map with Catastro Bogotá base layers
-    const map = new Map({
-        basemap: "streets-vector"
-    });
+    // Create empty map (without default basemap)
+    const map = new Map();
 
     // Create MapView centered on Bogotá
     const view = new MapView({
@@ -24,32 +23,82 @@ require([
         zoom: 11
     });
 
-    // Add Catastro Bogotá layers
-    const mapaBaseTile = new TileLayer({
+    // Add all Catastro Bogotá layers
+    const mapaBase = new TileLayer({
         url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_3857/MapServer",
-        title: "Mapa Base"
+        title: "Mapa Base",
+        visible: true
     });
+    map.add(mapaBase);
 
-    const mapaGrisTile = new TileLayer({
+    const mapa4686 = new TileLayer({
+        url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_4686/MapServer",
+        title: "Mapa Base 4686",
+        visible: false
+    });
+    map.add(mapa4686);
+
+    const mapaGris = new TileLayer({
         url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_gris/MapServer",
-        title: "Mapa Gris"
+        title: "Mapa Gris",
+        visible: false
     });
+    map.add(mapaGris);
 
-    const mapaOscuroTile = new TileLayer({
+    const mapaOscuro = new TileLayer({
         url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_oscuro_3857/MapServer",
-        title: "Mapa Oscuro"
+        title: "Mapa Oscuro",
+        visible: false
     });
+    map.add(mapaOscuro);
 
-    const mapaHibridoTile = new TileLayer({
-        url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_hibrido/MapServer",
-        title: "Mapa Híbrido"
+    const mapaToner = new TileLayer({
+        url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_toner/MapServer",
+        title: "Mapa Toner",
+        visible: false
     });
+    map.add(mapaToner);
+
+    const mapaHibrido = new TileLayer({
+        url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_hibrido/MapServer",
+        title: "Mapa Híbrido",
+        visible: false
+    });
+    map.add(mapaHibrido);
+
+    const mapaReferencia = new TileLayer({
+        url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/Mapa_Referencia/MapServer",
+        title: "Mapa Referencia",
+        visible: false
+    });
+    map.add(mapaReferencia);
+
+    const mapaMunicipios = new TileLayer({
+        url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapabasemunicipioscundinamarca/MapServer",
+        title: "Mapa Municipios Cundinamarca",
+        visible: false
+    });
+    map.add(mapaMunicipios);
 
     // Add graphics layer for reports
     const reportsGraphicsLayer = new GraphicsLayer({
-        title: "Reportes Ciudadanos"
+        title: "Reportes Ciudadanos",
+        visible: true
     });
     map.add(reportsGraphicsLayer);
+
+    // Layer list widget
+    const layerList = new LayerList({
+        view: view
+    });
+
+    const layerListExpand = new Expand({
+        view: view,
+        content: layerList,
+        expandIconClass: "esri-icon-layers",
+        expandTooltip: "Capas"
+    });
+    view.ui.add(layerListExpand, "top-right");
 
     // Data storage
     let reports = [];
@@ -176,12 +225,5 @@ require([
 
     // Initialize with example data
     loadExampleData();
-
-    // Basemap toggle
-    const basemapToggle = new BasemapToggle({
-        view: view,
-        nextBasemap: "satellite"
-    });
-    view.ui.add(basemapToggle, "bottom-right");
 });
 
