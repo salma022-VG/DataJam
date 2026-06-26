@@ -5,22 +5,37 @@ require([
     "esri/layers/GraphicsLayer",
     "esri/Graphic",
     "esri/geometry/Point",
+    "esri/geometry/Extent",
     "esri/symbols/SimpleMarkerSymbol",
     "esri/symbols/SimpleLineSymbol",
     "esri/widgets/LayerList",
     "esri/widgets/Expand",
     "esri/Color"
-], function(Map, MapView, TileLayer, GraphicsLayer, Graphic, Point, SimpleMarkerSymbol, SimpleLineSymbol, LayerList, Expand, Color) {
+], function(Map, MapView, TileLayer, GraphicsLayer, Graphic, Point, Extent, SimpleMarkerSymbol, SimpleLineSymbol, LayerList, Expand, Color) {
 
     // Create empty map (without default basemap)
     const map = new Map();
 
-    // Create MapView centered on Bogotá
+    // Define Bogotá boundaries (approximate)
+    const bogotaBounds = new Extent({
+        xmin: -74.2566,  // Oeste
+        ymin: 4.5206,    // Sur
+        xmax: -73.8883,  // Este
+        ymax: 4.9050,    // Norte
+        spatialReference: { wkid: 4326 }
+    });
+
+    // Create MapView centered on Bogotá with zoom constraints
     const view = new MapView({
         container: "map",
         map: map,
         center: [-74.0721, 4.7110],
-        zoom: 11
+        zoom: 11,
+        constraints: {
+            extent: bogotaBounds,  // Limitar área visible a Bogotá
+            minZoom: 9,            // Zoom mínimo (muy lejano)
+            maxZoom: 18            // Zoom máximo (muy cerca)
+        }
     });
 
     // Add all Catastro Bogotá layers
