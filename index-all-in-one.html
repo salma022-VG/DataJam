@@ -1,23 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- ===== META INFORMACIÓN ===== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Mi Barrio Seguro - Plataforma de Seguridad Ciudadana de Bogotá">
     <title>Mi Barrio Seguro - Mapa de Seguridad Bogotá</title>
 
-    <!-- ===== LIBRERÍAS EXTERNAS ===== -->
-    <!-- Bootstrap CSS para diseño responsive -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- ArcGIS API CSS para mapas profesionales -->
     <link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/themes/light/main.css">
 
-    <!-- ===== ESTILOS PERSONALIZADOS ===== -->
     <style>
-        /* ===== RESET Y ESTILOS GLOBALES ===== */
         * {
             margin: 0;
             padding: 0;
@@ -33,12 +26,10 @@
             background-color: #f5f5f5;
         }
 
-        /* ===== CONTENEDOR PRINCIPAL ===== */
         .main-container {
-            height: calc(100vh - 56px); /* Altura total menos altura de navbar */
+            height: calc(100vh - 56px);
         }
 
-        /* ===== BARRA DE NAVEGACIÓN ===== */
         .navbar {
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -48,7 +39,6 @@
             font-size: 18px;
         }
 
-        /* ===== SIDEBAR (PANEL LATERAL IZQUIERDO) ===== */
         .sidebar {
             background-color: #ffffff;
             border-right: 1px solid #ddd;
@@ -58,7 +48,6 @@
             z-index: 100;
         }
 
-        /* ===== MAPA (CONTENEDOR PRINCIPAL) ===== */
         #map {
             width: 100%;
             height: 100%;
@@ -66,7 +55,6 @@
             z-index: 1;
         }
 
-        /* ===== PANELS PLEGABLES (ACCORDION) ===== */
         .accordion-item {
             border: 1px solid #ddd;
             margin-bottom: 10px;
@@ -93,7 +81,6 @@
             background-color: #fafafa;
         }
 
-        /* ===== FORMULARIOS ===== */
         .form-label {
             font-size: 0.85rem;
             font-weight: 600;
@@ -111,7 +98,6 @@
             box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
         }
 
-        /* ===== BOTONES ===== */
         .btn {
             border-radius: 4px;
             font-weight: 500;
@@ -123,7 +109,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
-        /* ===== FILTROS CON CHIPS ===== */
         .filter-chips {
             display: flex;
             flex-wrap: wrap;
@@ -151,7 +136,6 @@
             color: #fff;
         }
 
-        /* ===== TARJETAS DE ESTADÍSTICAS ===== */
         .stat-card {
             color: white;
             padding: 12px;
@@ -160,7 +144,6 @@
             text-align: center;
         }
 
-        /* Gradientes únicos para cada tarjeta */
         .stat-card:nth-child(1) {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
@@ -186,14 +169,12 @@
             margin-top: 5px;
         }
 
-        /* ===== LISTA DE REPORTES RECIENTES ===== */
         .recent-item {
             padding: 10px;
             background-color: #fff;
             border-left: 4px solid #0c63e4;
             border-radius: 4px;
             margin-bottom: 8px;
-            cursor: pointer;
             transition: all 0.3s ease;
         }
 
@@ -202,14 +183,12 @@
             transform: translateX(5px);
         }
 
-        /* ===== NOTIFICACIONES ===== */
         .alert {
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             border: none;
         }
 
-        /* ===== SCROLLBAR PERSONALIZADO ===== */
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
@@ -226,28 +205,500 @@
         .sidebar::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+
+        .maps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .map-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .map-card:hover {
+            border-color: #0c63e4;
+            box-shadow: 0 2px 8px rgba(12, 99, 228, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .map-card.active {
+            border-color: #0c63e4;
+            background: #e7f1ff;
+            color: #0c63e4;
+            box-shadow: 0 2px 8px rgba(12, 99, 228, 0.5);
+        }
+
+        .map-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        /* CHATBOT STYLES */
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 380px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            z-index: 9999;
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-container.closed {
+            height: 60px;
+            width: 60px;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #0c63e4 0%, #0052a3 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .chatbot-container.closed .chatbot-header {
+            border-radius: 12px;
+        }
+
+        .chatbot-header-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .chatbot-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .chatbot-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chatbot-container.closed .chatbot-messages {
+            display: none;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.bot .message-bubble {
+            background: #e7f1ff;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.user .message-bubble {
+            background: #0c63e4;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chatbot-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid #ddd;
+            background: white;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .chatbot-container.closed .chatbot-input-area {
+            display: none;
+        }
+
+        .chatbot-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chatbot-input:focus {
+            border-color: #0c63e4;
+        }
+
+        /* CUSTOM SEND BUTTON */
+        .chatbot-send-btn {
+            --h-button: 36px;
+            --w-button: 90px;
+            --round: 0.5rem;
+            cursor: pointer;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            background: radial-gradient(
+                65.28% 65.28% at 50% 100%,
+                rgba(223, 113, 255, 0.8) 0%,
+                rgba(223, 113, 255, 0) 100%
+              ),
+              linear-gradient(0deg, #7a5af8, #7a5af8);
+            border-radius: var(--round);
+            border: none;
+            outline: none;
+            padding: 8px 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .chatbot-send-btn::before,
+        .chatbot-send-btn::after {
+            content: "";
+            position: absolute;
+            inset: var(--space);
+            transition: all 0.5s ease-in-out;
+            border-radius: calc(var(--round) - var(--space));
+            z-index: 0;
+        }
+
+        .chatbot-send-btn::before {
+            --space: 1px;
+            background: linear-gradient(
+              177.95deg,
+              rgba(255, 255, 255, 0.19) 0%,
+              rgba(255, 255, 255, 0) 100%
+            );
+        }
+
+        .chatbot-send-btn::after {
+            --space: 2px;
+            background: radial-gradient(
+                65.28% 65.28% at 50% 100%,
+                rgba(223, 113, 255, 0.8) 0%,
+                rgba(223, 113, 255, 0) 100%
+              ),
+              linear-gradient(0deg, #7a5af8, #7a5af8);
+        }
+
+        .chatbot-send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .chatbot-send-btn .fold {
+            z-index: 1;
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 0.75rem;
+            width: 0.75rem;
+            display: inline-block;
+            transition: all 0.5s ease-in-out;
+            background: radial-gradient(
+              100% 75% at 55%,
+              rgba(223, 113, 255, 0.8) 0%,
+              rgba(223, 113, 255, 0) 100%
+            );
+            box-shadow: 0 0 3px black;
+            border-bottom-left-radius: 0.4rem;
+            border-top-right-radius: var(--round);
+        }
+
+        .chatbot-send-btn .fold::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150%;
+            height: 150%;
+            transform: rotate(45deg) translateX(0%) translateY(-14px);
+            background-color: #e8e8e8;
+            pointer-events: none;
+        }
+
+        .chatbot-send-btn:hover .fold {
+            margin-top: -0.75rem;
+            margin-right: -0.75rem;
+        }
+
+        .chatbot-send-btn .points_wrapper {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            position: absolute;
+            z-index: 1;
+        }
+
+        .chatbot-send-btn .point {
+            bottom: -10px;
+            position: absolute;
+            animation: floating-points-chat infinite ease-in-out;
+            pointer-events: none;
+            width: 1.5px;
+            height: 1.5px;
+            background-color: #fff;
+            border-radius: 9999px;
+        }
+
+        @keyframes floating-points-chat {
+            0% {
+                transform: translateY(0);
+            }
+            85% {
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(-40px);
+                opacity: 0;
+            }
+        }
+
+        .chatbot-send-btn .point:nth-child(1) {
+            left: 10%;
+            opacity: 1;
+            animation-duration: 2.35s;
+            animation-delay: 0.2s;
+        }
+        .chatbot-send-btn .point:nth-child(2) {
+            left: 30%;
+            opacity: 0.7;
+            animation-duration: 2.5s;
+            animation-delay: 0.5s;
+        }
+        .chatbot-send-btn .point:nth-child(3) {
+            left: 25%;
+            opacity: 0.8;
+            animation-duration: 2.2s;
+            animation-delay: 0.1s;
+        }
+        .chatbot-send-btn .point:nth-child(4) {
+            left: 44%;
+            opacity: 0.6;
+            animation-duration: 2.05s;
+        }
+        .chatbot-send-btn .point:nth-child(5) {
+            left: 50%;
+            opacity: 1;
+            animation-duration: 1.9s;
+        }
+        .chatbot-send-btn .point:nth-child(6) {
+            left: 75%;
+            opacity: 0.5;
+            animation-duration: 1.5s;
+            animation-delay: 1.5s;
+        }
+        .chatbot-send-btn .point:nth-child(7) {
+            left: 88%;
+            opacity: 0.9;
+            animation-duration: 2.2s;
+            animation-delay: 0.2s;
+        }
+        .chatbot-send-btn .point:nth-child(8) {
+            left: 58%;
+            opacity: 0.8;
+            animation-duration: 2.25s;
+            animation-delay: 0.2s;
+        }
+        .chatbot-send-btn .point:nth-child(9) {
+            left: 98%;
+            opacity: 0.6;
+            animation-duration: 2.6s;
+            animation-delay: 0.1s;
+        }
+        .chatbot-send-btn .point:nth-child(10) {
+            left: 65%;
+            opacity: 1;
+            animation-duration: 2.5s;
+            animation-delay: 0.2s;
+        }
+
+        .chatbot-send-btn .inner {
+            z-index: 2;
+            gap: 4px;
+            position: relative;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .chatbot-send-btn svg.icon {
+            width: 16px;
+            height: 16px;
+            transition: fill 0.1s linear;
+        }
+
+        .chatbot-send-btn:hover svg.icon {
+            fill: transparent;
+            animation: dasharray-chat 0.8s linear forwards, filled-chat 0.1s linear forwards 0.75s;
+        }
+
+        @keyframes dasharray-chat {
+            from {
+                stroke-dasharray: 0 0 0 0;
+            }
+            to {
+                stroke-dasharray: 68 68 0 0;
+            }
+        }
+
+        @keyframes filled-chat {
+            to {
+                fill: white;
+            }
+        }
+
+        .chatbot-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #0c63e4 0%, #0052a3 100%);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(12, 99, 228, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 9998;
+        }
+
+        .chatbot-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(12, 99, 228, 0.6);
+        }
+
+        .chatbot-fab.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <!-- ===== BARRA DE NAVEGACIÓN ===== -->
     <nav class="navbar navbar-dark bg-primary shadow">
         <div class="container-fluid">
-            <!-- Logo y título principal -->
             <span class="navbar-brand mb-0"><i class="fas fa-shield-alt"></i> Mi Barrio Seguro</span>
-            <!-- Subtítulo descriptivo -->
             <span class="navbar-text text-white small">Plataforma de Seguridad Ciudadana - Bogotá</span>
         </div>
     </nav>
 
-    <!-- ===== CONTENEDOR PRINCIPAL CON DOS COLUMNAS ===== -->
     <div class="container-fluid main-container">
         <div class="row h-100">
-            <!-- ===== SIDEBAR: PANEL LATERAL IZQUIERDO ===== -->
             <div class="col-lg-3 sidebar">
-                <!-- Accordion con múltiples secciones plegables -->
                 <div class="accordion" id="accordionPanel">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#maps">
+                                <i class="fas fa-map"></i> Mapas Base
+                            </button>
+                        </h2>
+                        <div id="maps" class="accordion-collapse collapse show" data-bs-parent="#accordionPanel">
+                            <div class="accordion-body">
+                                <div class="maps-grid">
+                                    <div class="map-card active" data-map="gris">
+                                        <div class="map-icon">🩶</div>
+                                        <div>Gris</div>
+                                    </div>
+                                    <div class="map-card" data-map="base">
+                                        <div class="map-icon">🗺️</div>
+                                        <div>Base</div>
+                                    </div>
+                                    <div class="map-card" data-map="4686">
+                                        <div class="map-icon">📍</div>
+                                        <div>4686</div>
+                                    </div>
+                                    <div class="map-card" data-map="oscuro">
+                                        <div class="map-icon">🌙</div>
+                                        <div>Oscuro</div>
+                                    </div>
+                                    <div class="map-card" data-map="toner">
+                                        <div class="map-icon">⬛</div>
+                                        <div>Toner</div>
+                                    </div>
+                                    <div class="map-card" data-map="hibrido">
+                                        <div class="map-icon">🛰️</div>
+                                        <div>Híbrido</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <!-- PANEL 1: BÚSQUEDA Y FILTROS -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#search">
@@ -256,13 +707,11 @@
                         </h2>
                         <div id="search" class="accordion-collapse collapse show" data-bs-parent="#accordionPanel">
                             <div class="accordion-body">
-                                <!-- Campo de búsqueda por ubicación -->
                                 <div class="mb-3">
                                     <input type="text" class="form-control form-control-sm" id="searchLocation"
                                            placeholder="Buscar ubicación..." >
                                     <small class="text-muted">ej: Chapinero, Calle 72</small>
                                 </div>
-                                <!-- Filtros tipo chip para tipos de delitos -->
                                 <div class="mb-3">
                                     <label class="form-label small">Filtrar por tipo:</label>
                                     <div class="filter-chips">
@@ -276,7 +725,6 @@
                         </div>
                     </div>
 
-                    <!-- PANEL 2: FORMULARIO PARA REPORTAR INCIDENTE -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#report">
@@ -286,7 +734,6 @@
                         <div id="report" class="accordion-collapse collapse" data-bs-parent="#accordionPanel">
                             <div class="accordion-body">
                                 <form id="reportForm">
-                                    <!-- Seleccionar tipo de delito -->
                                     <div class="mb-2">
                                         <label class="form-label small">Tipo de delito</label>
                                         <select class="form-select form-select-sm" id="reportType" required>
@@ -298,29 +745,24 @@
                                             <option value="Otro">Otro</option>
                                         </select>
                                     </div>
-                                    <!-- Ingresar ubicación del incidente -->
                                     <div class="mb-2">
                                         <label class="form-label small">Ubicación</label>
                                         <input type="text" class="form-control form-control-sm" id="reportLocation"
                                                placeholder="Barrio, calle..." required>
                                     </div>
-                                    <!-- Seleccionar fecha del incidente -->
                                     <div class="mb-2">
                                         <label class="form-label small">Fecha</label>
                                         <input type="date" class="form-control form-control-sm" id="reportDate" required>
                                     </div>
-                                    <!-- Ingresar hora del incidente -->
                                     <div class="mb-2">
                                         <label class="form-label small">Hora</label>
                                         <input type="time" class="form-control form-control-sm" id="reportTime" required>
                                     </div>
-                                    <!-- Descripción opcional del incidente -->
                                     <div class="mb-2">
                                         <label class="form-label small">Descripción (opcional)</label>
                                         <textarea class="form-control form-control-sm" id="reportDesc"
                                                   rows="2" placeholder="Detalles..."></textarea>
                                     </div>
-                                    <!-- Botón de envío del formulario -->
                                     <button type="submit" class="btn btn-danger btn-sm w-100">
                                         <i class="fas fa-paper-plane"></i> Enviar Reporte
                                     </button>
@@ -329,7 +771,6 @@
                         </div>
                     </div>
 
-                    <!-- PANEL 3: ESTADÍSTICAS EN VIVO -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stats">
@@ -338,28 +779,25 @@
                         </h2>
                         <div id="stats" class="accordion-collapse collapse" data-bs-parent="#accordionPanel">
                             <div class="accordion-body">
-                                <!-- Tarjeta 1: Total de reportes acumulados -->
                                 <div class="stat-card">
                                     <div class="stat-label">Total Reportes</div>
                                     <div class="stat-value" id="totalReports">0</div>
                                 </div>
-                                <!-- Tarjeta 2: Reportes del día actual -->
                                 <div class="stat-card">
                                     <div class="stat-label">Hoy</div>
                                     <div class="stat-value" id="todayReports">0</div>
                                 </div>
-                                <!-- Tarjeta 3: Zona con mayor incidencia -->
                                 <div class="stat-card">
                                     <div class="stat-label">Zona Crítica</div>
                                     <div class="stat-value small" id="criticalZone">-</div>
                                 </div>
-                                <!-- Gráfico de estadísticas por tipo de delito -->
-                                <canvas id="chartDelitos" style="max-height: 200px; margin-top: 15px;"></canvas>
+                                <div style="position: relative; height: 280px; margin-top: 15px;">
+                                    <canvas id="chartDelitos"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- PANEL 4: LISTA DE REPORTES RECIENTES -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#recent">
@@ -368,7 +806,6 @@
                         </h2>
                         <div id="recent" class="accordion-collapse collapse" data-bs-parent="#accordionPanel">
                             <div class="accordion-body" style="max-height: 300px; overflow-y: auto;">
-                                <!-- Lista dinámicamente rellenada de reportes -->
                                 <div id="recentList">
                                     <p class="text-muted small">No hay reportes aún</p>
                                 </div>
@@ -377,229 +814,257 @@
                     </div>
                 </div>
 
-                <!-- BOTONES DE ACCIÓN PRINCIPAL -->
                 <div class="btn-group w-100 mt-3 gap-2 d-flex flex-column">
-                    <!-- Descargar datos en formato CSV -->
                     <button class="btn btn-success btn-sm" id="downloadBtn">
                         <i class="fas fa-download"></i> Descargar CSV
                     </button>
-                    <!-- Limpiar todos los datos locales -->
                     <button class="btn btn-info btn-sm" id="clearBtn">
                         <i class="fas fa-trash"></i> Limpiar Datos
                     </button>
                 </div>
             </div>
 
-            <!-- ===== MAPA: PANEL PRINCIPAL DERECHO ===== -->
-            <div class="col-lg-9 p-0">
-                <!-- Contenedor del mapa de ArcGIS JavaScript API -->
-                <div id="map"></div>
+            <div class="col-lg-9 p-0" style="position: relative;">
+                <div id="map" style="width: 100%; height: 100%;"></div>
             </div>
         </div>
     </div>
 
-    <!-- ===== SCRIPTS EXTERNOS ===== -->
-    <!-- Bootstrap JavaScript para componentes interactivos -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Chart.js para gráficos de estadísticas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <!-- ArcGIS JavaScript API para mapas profesionales -->
     <script src="https://js.arcgis.com/4.27/"></script>
 
-    <!-- ===== SCRIPT PRINCIPAL: TODO EL CÓDIGO EN JAVASCRIPT ===== -->
     <script>
-        // ========================================
-        // SECCIÓN 1: CONFIGURACIÓN DEL MAPA CON ARCGIS
-        // ========================================
+        // Localidades de Bogotá
+        const localidades = [
+            { name: 'Usaquén', code: 'usaquen' },
+            { name: 'Chapinero', code: 'chapinero' },
+            { name: 'Santa Fe', code: 'santa_fe' },
+            { name: 'San Cristóbal', code: 'san_cristobal' },
+            { name: 'Usme', code: 'usme' },
+            { name: 'Tunjuelito', code: 'tunjuelito' },
+            { name: 'Bosa', code: 'bosa' },
+            { name: 'Kennedy', code: 'kennedy' },
+            { name: 'Fontibón', code: 'fontibon' },
+            { name: 'Engativá', code: 'engativa' },
+            { name: 'Suba', code: 'suba' },
+            { name: 'Barrios Unidos', code: 'barrios_unidos' },
+            { name: 'Teusaquillo', code: 'teusaquillo' },
+            { name: 'Los Mártires', code: 'los_martires' },
+            { name: 'Antonio Nariño', code: 'antonio_narino' },
+            { name: 'Puente Aranda', code: 'puente_aranda' },
+            { name: 'La Candelaria', code: 'la_candelaria' },
+            { name: 'Rafael Uribe Umaña', code: 'rafael_uribe' },
+            { name: 'Ciudad Bolívar', code: 'ciudad_bolivar' },
+            { name: 'Sumapaz', code: 'sumapaz' }
+        ];
 
+        // Localidades de Bogotá con coordenadas y nivel de peligro
+        const localidadesExtended = [
+            { name: 'Usaquén', lat: 4.7270, lng: -74.0280, danger: 'moderado', pointCount: 25 },
+            { name: 'Chapinero', lat: 4.7110, lng: -74.0550, danger: 'bajo', pointCount: 15 },
+            { name: 'Santa Fe', lat: 4.7000, lng: -74.0750, danger: 'alto', pointCount: 50 },
+            { name: 'San Cristóbal', lat: 4.6750, lng: -74.0850, danger: 'alto', pointCount: 55 },
+            { name: 'Usme', lat: 4.5800, lng: -74.1300, danger: 'alto', pointCount: 48 },
+            { name: 'Tunjuelito', lat: 4.6200, lng: -74.1200, danger: 'moderado', pointCount: 28 },
+            { name: 'Bosa', lat: 4.7500, lng: -74.1900, danger: 'moderado', pointCount: 30 },
+            { name: 'Kennedy', lat: 4.6300, lng: -74.1800, danger: 'moderado', pointCount: 32 },
+            { name: 'Fontibón', lat: 4.7200, lng: -74.2400, danger: 'bajo', pointCount: 12 },
+            { name: 'Engativá', lat: 4.7400, lng: -74.1500, danger: 'bajo', pointCount: 18 },
+            { name: 'Suba', lat: 4.7800, lng: -74.1400, danger: 'moderado', pointCount: 26 },
+            { name: 'Barrios Unidos', lat: 4.7650, lng: -74.0900, danger: 'moderado', pointCount: 24 },
+            { name: 'Teusaquillo', lat: 4.7400, lng: -74.0600, danger: 'bajo', pointCount: 14 },
+            { name: 'Los Mártires', lat: 4.7050, lng: -74.0900, danger: 'alto', pointCount: 52 },
+            { name: 'Antonio Nariño', lat: 4.6850, lng: -74.0950, danger: 'moderado', pointCount: 29 },
+            { name: 'Puente Aranda', lat: 4.6900, lng: -74.1050, danger: 'alto', pointCount: 45 },
+            { name: 'La Candelaria', lat: 4.6950, lng: -74.0800, danger: 'moderado', pointCount: 27 },
+            { name: 'Rafael Uribe Umaña', lat: 4.6550, lng: -74.1050, danger: 'alto', pointCount: 49 },
+            { name: 'Ciudad Bolívar', lat: 4.5700, lng: -74.1600, danger: 'alto', pointCount: 60 },
+            { name: 'Sumapaz', lat: 4.4500, lng: -74.3000, danger: 'bajo', pointCount: 8 }
+        ];
+
+        let crimeDataByLocalidad = {};
+        localidadesExtended.forEach(loc => {
+            crimeDataByLocalidad[loc.name] = loc.pointCount * 10;
+        });
+
+        let allReports = [];
+        let chartInstance = null;
+        let currentFilter = 'all';
+        let mapLayers = {};
+
+        // ARCGIS MAP WITH HEATMAP
         require([
             "esri/Map",
             "esri/views/MapView",
             "esri/layers/TileLayer",
-            "esri/layers/GraphicsLayer",
+            "esri/layers/FeatureLayer",
             "esri/Graphic",
             "esri/geometry/Point",
             "esri/geometry/Extent",
             "esri/symbols/SimpleMarkerSymbol",
             "esri/symbols/SimpleLineSymbol",
-            "esri/widgets/LayerList",
-            "esri/widgets/Expand",
+            "esri/renderers/HeatmapRenderer",
             "esri/Color"
-        ], function(Map, MapView, TileLayer, GraphicsLayer, Graphic, Point, Extent, SimpleMarkerSymbol, SimpleLineSymbol, LayerList, Expand, Color) {
+        ], function(Map, MapView, TileLayer, FeatureLayer, Graphic, Point, Extent, SimpleMarkerSymbol, SimpleLineSymbol, HeatmapRenderer, Color) {
 
-            // Crear un mapa vacío (sin capa base por defecto)
             const map = new Map();
 
-            // ===== DEFINIR LÍMITES GEOGRÁFICOS DE BOGOTÁ =====
-            // Esto evita que el usuario haga pan o zoom fuera de la ciudad
             const bogotaBounds = new Extent({
-                xmin: -74.2566,  // Límite oeste
-                ymin: 4.5206,    // Límite sur
-                xmax: -73.8883,  // Límite este
-                ymax: 4.9050,    // Límite norte
+                xmin: -74.2566,
+                ymin: 4.5206,
+                xmax: -73.8883,
+                ymax: 4.9050,
                 spatialReference: { wkid: 4326 }
             });
 
-            // ===== CREAR VISTA DEL MAPA CENTRADA EN BOGOTÁ =====
             const view = new MapView({
-                container: "map",              // ID del contenedor HTML
+                container: "map",
                 map: map,
-                center: [-74.0721, 4.7110],   // Coordenadas del centro (Bogotá)
-                zoom: 11,                      // Nivel de zoom inicial
+                center: [-74.0721, 4.7110],
+                zoom: 11,
                 constraints: {
-                    extent: bogotaBounds,      // Limitar área visible
-                    minZoom: 9,                // Zoom mínimo (vista general)
-                    maxZoom: 18                // Zoom máximo (nivel de calles)
+                    extent: bogotaBounds,
+                    minZoom: 9,
+                    maxZoom: 18
                 }
             });
 
-            // ===== AGREGAR TODAS LAS CAPAS DE MAPA DEL CATASTRO BOGOTÁ =====
+            mapLayers.gris = new TileLayer({
+                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_gris/MapServer",
+                title: "Mapa Gris",
+                visible: true
+            });
+            map.add(mapLayers.gris);
 
-            // Mapa Base - Colorido (tradicional)
-            const mapaBase = new TileLayer({
+            mapLayers.base = new TileLayer({
                 url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_3857/MapServer",
                 title: "Mapa Base",
-                visible: false  // Inicialmente oculto
+                visible: false
             });
-            map.add(mapaBase);
+            map.add(mapLayers.base);
 
-            // Mapa Base 4686 - Proyección diferente
-            const mapa4686 = new TileLayer({
+            mapLayers['4686'] = new TileLayer({
                 url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_4686/MapServer",
                 title: "Mapa Base 4686",
                 visible: false
             });
-            map.add(mapa4686);
+            map.add(mapLayers['4686']);
 
-            // Mapa Gris - VISIBLE POR DEFECTO (mejor para análisis de datos)
-            const mapaGris = new TileLayer({
-                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_gris/MapServer",
-                title: "Mapa Gris",
-                visible: true  // Este es el mapa visible al iniciar
-            });
-            map.add(mapaGris);
-
-            // Mapa Oscuro
-            const mapaOscuro = new TileLayer({
+            mapLayers.oscuro = new TileLayer({
                 url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_oscuro_3857/MapServer",
                 title: "Mapa Oscuro",
                 visible: false
             });
-            map.add(mapaOscuro);
+            map.add(mapLayers.oscuro);
 
-            // Mapa Toner - Estilo minimalista
-            const mapaToner = new TileLayer({
+            mapLayers.toner = new TileLayer({
                 url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_base_toner/MapServer",
                 title: "Mapa Toner",
                 visible: false
             });
-            map.add(mapaToner);
+            map.add(mapLayers.toner);
 
-            // Mapa Híbrido - Satélite + etiquetas
-            const mapaHibrido = new TileLayer({
+            mapLayers.hibrido = new TileLayer({
                 url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapa_hibrido/MapServer",
                 title: "Mapa Híbrido",
                 visible: false
             });
-            map.add(mapaHibrido);
+            map.add(mapLayers.hibrido);
 
-            // Mapa Referencia
-            const mapaReferencia = new TileLayer({
+            mapLayers.referencia = new TileLayer({
                 url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/Mapa_Referencia/MapServer",
                 title: "Mapa Referencia",
                 visible: false
             });
-            map.add(mapaReferencia);
+            map.add(mapLayers.referencia);
 
-            // Mapa de Municipios de Cundinamarca (contexto regional)
-            const mapaMunicipios = new TileLayer({
-                url: "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/Mapa_Referencia/mapabasemunicipioscundinamarca/MapServer",
-                title: "Mapa Municipios Cundinamarca",
-                visible: false
-            });
-            map.add(mapaMunicipios);
-
-            // ===== CAPA DE GRÁFICOS PARA MOSTRAR REPORTES =====
-            const reportsGraphicsLayer = new GraphicsLayer({
-                title: "Reportes Ciudadanos",
-                visible: true
-            });
-            map.add(reportsGraphicsLayer);
-
-            // ===== WIDGET DE LISTA DE CAPAS =====
-            // Permite al usuario cambiar entre capas
-            const layerList = new LayerList({
-                view: view
+            // HEATMAP RENDERER CONFIGURATION
+            const heatmapRenderer = new HeatmapRenderer({
+                colorStops: [
+                    { ratio: 0, color: "rgba(0, 100, 200, 0)" },
+                    { ratio: 0.10, color: "rgba(0, 150, 255, 0.5)" },
+                    { ratio: 0.25, color: "rgba(100, 200, 255, 0.7)" },
+                    { ratio: 0.40, color: "rgba(100, 255, 100, 0.8)" },
+                    { ratio: 0.55, color: "rgba(255, 255, 0, 0.9)" },
+                    { ratio: 0.75, color: "rgba(255, 165, 0, 0.95)" },
+                    { ratio: 1.00, color: "rgba(255, 0, 0, 1)" }
+                ],
+                maxPixelIntensity: 500,
+                minPixelIntensity: 0,
+                radius: 60,
+                blur: 20
             });
 
-            const layerListExpand = new Expand({
-                view: view,
-                content: layerList,
-                expandIconClass: "esri-icon-layers",
-                expandTooltip: "Capas"
+            const heatmapLayer = new FeatureLayer({
+                source: [],
+                objectIdField: "ObjectID",
+                geometryType: "point",
+                spatialReference: { wkid: 4326 },
+                fields: [
+                    { name: "ObjectID", type: "oid" },
+                    { name: "type", type: "string" },
+                    { name: "location", type: "string" },
+                    { name: "date", type: "string" }
+                ],
+                renderer: heatmapRenderer,
+                title: "Mapa de Calor de Reportes"
             });
-            view.ui.add(layerListExpand, "top-right");
+            map.add(heatmapLayer);
 
-            // ===== ALMACENAMIENTO DE REPORTES EN MEMORIA =====
+
             let reports = [];
+            let objectIdCounter = 1;
 
-            // ===== CARGAR DATOS DE EJEMPLO =====
             function loadExampleData() {
-                const exampleDelitos = [
-                    { lat: 4.7110, lng: -74.0721, type: 'Robo', risk: 'Alto' },
-                    { lat: 4.7200, lng: -74.0650, type: 'Hurto', risk: 'Crítico' },
-                    { lat: 4.6800, lng: -74.0800, type: 'Robo', risk: 'Alto' },
-                    { lat: 4.7500, lng: -74.1000, type: 'Asalto', risk: 'Moderado' },
-                    { lat: 4.6500, lng: -74.0500, type: 'Robo', risk: 'Moderado' },
-                    { lat: 4.7300, lng: -74.0900, type: 'Hurto', risk: 'Alto' },
-                    { lat: 4.6900, lng: -74.0400, type: 'Robo', risk: 'Alto' }
-                ];
+                const tiposDelito = ['Robo', 'Hurto', 'Asalto', 'Violencia', 'Otro'];
+                const graphics = [];
+                let objectId = 1;
+                const exampleDelitos = [];
 
-                // Agregar cada punto de delito como marcador en el mapa
-                exampleDelitos.forEach((delito) => {
-                    const point = new Point({
-                        longitude: delito.lng,
-                        latitude: delito.lat
-                    });
+                localidadesExtended.forEach((localidad) => {
+                    const pointCount = localidad.pointCount;
 
-                    // Colorear marcador según nivel de riesgo
-                    const color = delito.risk === 'Alto' || delito.risk === 'Crítico'
-                        ? new Color([220, 53, 69, 0.8])    // Rojo para alto riesgo
-                        : new Color([255, 193, 7, 0.8]);   // Amarillo para riesgo moderado
+                    for (let i = 0; i < pointCount; i++) {
+                        const offsetLat = localidad.lat + (Math.random() - 0.5) * 0.05;
+                        const offsetLng = localidad.lng + (Math.random() - 0.5) * 0.05;
 
-                    // Definir símbolo (icono) del marcador
-                    const markerSymbol = new SimpleMarkerSymbol({
-                        color: color,
-                        size: "12px",
-                        outline: new SimpleLineSymbol({
-                            color: [0, 0, 0],
-                            width: 1
-                        })
-                    });
+                        const point = new Point({
+                            longitude: offsetLng,
+                            latitude: offsetLat
+                        });
 
-                    // Crear gráfico (marcador) en el mapa
-                    const graphic = new Graphic({
-                        geometry: point,
-                        symbol: markerSymbol,
-                        attributes: {
-                            type: delito.type,
-                            risk: delito.risk
-                        },
-                        popupTemplate: {
-                            title: "{type}",
-                            content: "Riesgo: {risk}"
-                        }
-                    });
+                        const type = tiposDelito[Math.floor(Math.random() * tiposDelito.length)];
 
-                    reportsGraphicsLayer.add(graphic);
+                        graphics.push(new Graphic({
+                            geometry: point,
+                            attributes: {
+                                ObjectID: objectId++,
+                                type: type,
+                                location: localidad.name,
+                                date: new Date().toISOString().split('T')[0]
+                            }
+                        }));
+
+                        exampleDelitos.push({
+                            lat: offsetLat,
+                            lng: offsetLng,
+                            type: type,
+                            location: localidad.name,
+                            localidad: localidad.name
+                        });
+                    }
+                });
+
+                view.when(() => {
+                    heatmapLayer.addMany(graphics);
                 });
 
                 reports = exampleDelitos;
+                objectIdCounter = objectId;
             }
 
-            // ===== FUNCIÓN PARA AGREGAR NUEVO REPORTE DESDE FORMULARIO =====
             window.addReport = function(data) {
-                // Generar coordenadas aproximadas alrededor del centro de Bogotá
                 const lat = 4.7110 + (Math.random() - 0.5) * 0.1;
                 const lng = -74.0721 + (Math.random() - 0.5) * 0.1;
 
@@ -608,102 +1073,42 @@
                     latitude: lat
                 });
 
-                // Marcador rojo para nuevos reportes
-                const markerSymbol = new SimpleMarkerSymbol({
-                    color: new Color([220, 53, 69, 0.9]),
-                    size: "10px",
-                    outline: new SimpleLineSymbol({
-                        color: [0, 0, 0],
-                        width: 1
-                    })
-                });
-
-                // Crear gráfico con información del reporte
                 const graphic = new Graphic({
                     geometry: point,
-                    symbol: markerSymbol,
                     attributes: {
+                        ObjectID: objectIdCounter++,
                         type: data.type,
                         location: data.location,
                         date: data.date
-                    },
-                    popupTemplate: {
-                        title: "{type}",
-                        content: "Ubicación: {location}<br>Fecha: {date}"
                     }
                 });
 
-                reportsGraphicsLayer.add(graphic);
-                reports.push({ lat, lng, type: data.type, location: data.location });
+                heatmapLayer.add(graphic);
+
+                const randomLocalidad = localidades[Math.floor(Math.random() * localidades.length)];
+
+                reports.push({
+                    lat,
+                    lng,
+                    type: data.type,
+                    location: data.location,
+                    localidad: randomLocalidad.name
+                });
+
+                if (crimeDataByLocalidad[randomLocalidad.name] !== undefined) {
+                    crimeDataByLocalidad[randomLocalidad.name] += 5;
+                }
             };
 
-            // Cargar datos de ejemplo al iniciar
-            loadExampleData();
+            view.when(() => {
+                setTimeout(() => {
+                    loadExampleData();
+                }, 500);
+            });
         });
 
-        // ========================================
-        // SECCIÓN 2: INTERACTIVIDAD Y GESTIÓN DE DATOS
-        // ========================================
 
-        // Variables globales para gestión de estado
-        let allReports = [];        // Array de todos los reportes
-        let chartInstance = null;   // Instancia del gráfico
-        let currentFilter = 'all';  // Filtro actual aplicado
-
-        // Inicializar cuando el DOM esté completamente cargado
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeFilters();      // Configurar filtros
-            initializeSearch();       // Configurar búsqueda
-            loadStoredReports();      // Cargar reportes guardados
-            updateChart();            // Actualizar gráfico
-            setupClearButton();       // Configurar botón limpiar
-            setupFormSubmit();        // Configurar envío de formulario
-        });
-
-        // ===== INICIALIZAR FILTROS POR TIPO DE DELITO =====
-        function initializeFilters() {
-            document.querySelectorAll('.filter-chips .chip').forEach(chip => {
-                chip.addEventListener('click', (e) => {
-                    // Remover clase "active" de todos los chips
-                    document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
-                    // Agregar clase "active" al chip clickeado
-                    e.target.classList.add('active');
-                    // Actualizar filtro actual
-                    currentFilter = e.target.dataset.filter;
-                    // Aplicar filtro
-                    filterReports();
-                });
-            });
-        }
-
-        // ===== APLICAR FILTRO A LOS REPORTES =====
-        function filterReports() {
-            // Filtrar reportes según tipo seleccionado
-            const filtered = currentFilter === 'all'
-                ? allReports
-                : allReports.filter(r => r.type === currentFilter);
-
-            // Mostrar últimos 5 reportes filtrados
-            displayRecentReports(filtered.slice(-5).reverse());
-            // Actualizar estadísticas con datos filtrados
-            updateStats(filtered);
-        }
-
-        // ===== BÚSQUEDA POR UBICACIÓN EN TIEMPO REAL =====
-        function initializeSearch() {
-            document.getElementById('searchLocation').addEventListener('input', (e) => {
-                // Obtener texto de búsqueda en minúsculas
-                const query = e.target.value.toLowerCase();
-                // Filtrar reportes que coincidan con la búsqueda
-                const filtered = allReports.filter(r =>
-                    r.location.toLowerCase().includes(query)
-                );
-                // Mostrar reportes filtrados
-                displayRecentReports(filtered.slice(-5).reverse());
-            });
-        }
-
-        // ===== MOSTRAR LISTA DE REPORTES RECIENTES =====
+        // UI AND DATA MANAGEMENT
         function displayRecentReports(reports) {
             const list = document.getElementById('recentList');
 
@@ -712,28 +1117,22 @@
                 return;
             }
 
-            // Generar HTML para cada reporte
             list.innerHTML = reports.map(r => `
                 <div class="recent-item">
                     <span class="badge bg-danger">${r.type}</span>
                     <small class="text-muted ms-2">${r.date}</small>
-                    <div class="recent-location"><i class="fas fa-map-pin"></i> ${r.location}</div>
+                    <div><i class="fas fa-map-pin"></i> ${r.location}</div>
                 </div>
             `).join('');
         }
 
-        // ===== ACTUALIZAR ESTADÍSTICAS =====
         function updateStats(reports = allReports) {
-            // Obtener fecha actual
             const today = new Date().toISOString().split('T')[0];
-            // Contar reportes de hoy
             const todayCount = reports.filter(r => r.date === today).length;
 
-            // Actualizar totales
             document.getElementById('totalReports').textContent = reports.length;
             document.getElementById('todayReports').textContent = todayCount;
 
-            // Encontrar zona crítica (ubicación con más reportes)
             const zonaCounts = {};
             reports.forEach(r => {
                 zonaCounts[r.location] = (zonaCounts[r.location] || 0) + 1;
@@ -745,150 +1144,88 @@
             }
         }
 
-        // ===== ACTUALIZAR GRÁFICO DE ESTADÍSTICAS =====
         function updateChart() {
             const ctx = document.getElementById('chartDelitos');
             if (!ctx) return;
 
-            // Contar reportes por tipo de delito
             const tipos = {};
             allReports.forEach(r => {
                 tipos[r.type] = (tipos[r.type] || 0) + 1;
             });
 
-            // Destruir gráfico anterior si existe
             if (chartInstance) {
                 chartInstance.destroy();
             }
 
-            // Crear nuevo gráfico de barras con Chart.js
+            const colors = [
+                'rgba(220, 53, 69, 0.8)',
+                'rgba(255, 193, 7, 0.8)',
+                'rgba(23, 162, 184, 0.8)',
+                'rgba(40, 167, 69, 0.8)',
+                'rgba(111, 66, 193, 0.8)'
+            ];
+
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: Object.keys(tipos),
                     datasets: [{
-                        label: 'Reportes',
+                        label: 'Reportes por Tipo',
                         data: Object.values(tipos),
-                        backgroundColor: [
-                            'rgba(220, 53, 69, 0.7)',
-                            'rgba(255, 193, 7, 0.7)',
-                            'rgba(23, 162, 184, 0.7)'
-                        ],
-                        borderWidth: 1
+                        backgroundColor: colors.slice(0, Object.keys(tipos).length),
+                        borderColor: colors.slice(0, Object.keys(tipos).length).map(c => c.replace('0.8', '1')),
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        hoverBackgroundColor: colors.slice(0, Object.keys(tipos).length).map(c => c.replace('0.8', '1'))
                     }]
                 },
                 options: {
+                    indexAxis: 'y',
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 12 } }
+                        },
                         y: {
-                            beginAtZero: true
+                            ticks: { font: { size: 13, weight: 'bold' } }
                         }
                     },
                     plugins: {
-                        legend: { display: false }
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { font: { size: 13 }, padding: 15 }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Trayectoria anual distrital 2018-2025',
+                            font: { size: 15, weight: 'bold' },
+                            padding: 15
+                        }
                     }
                 }
             });
         }
 
-        // ===== CARGAR REPORTES GUARDADOS EN LOCALSTORAGE =====
         function loadStoredReports() {
-            // Obtener reportes del almacenamiento local
             const stored = JSON.parse(localStorage.getItem('mibarrioseguro_reports') || '[]');
             allReports = stored;
-            // Mostrar últimos reportes
             displayRecentReports(allReports.slice(-5).reverse());
-            // Actualizar UI
             updateStats();
             updateChart();
         }
 
-        // ===== CONFIGURAR ENVÍO DE FORMULARIO =====
-        function setupFormSubmit() {
-            const reportForm = document.getElementById('reportForm');
+        function filterReports() {
+            const filtered = currentFilter === 'all'
+                ? allReports
+                : allReports.filter(r => r.type === currentFilter);
 
-            if (reportForm) {
-                reportForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-
-                    // Obtener datos del formulario
-                    const reportData = {
-                        type: document.getElementById('reportType').value,
-                        location: document.getElementById('reportLocation').value,
-                        date: document.getElementById('reportDate').value,
-                        time: document.getElementById('reportTime').value,
-                        description: document.getElementById('reportDesc').value || ''
-                    };
-
-                    // Validar que estén completos los campos requeridos
-                    if (!reportData.type || !reportData.location || !reportData.date || !reportData.time) {
-                        showAlert('Por favor completa todos los campos', 'warning');
-                        return;
-                    }
-
-                    // Agregar nuevo reporte al array
-                    allReports.push({
-                        ...reportData,
-                        id: Date.now(),
-                        timestamp: new Date().toISOString()
-                    });
-
-                    // Guardar en localStorage
-                    localStorage.setItem('mibarrioseguro_reports', JSON.stringify(allReports));
-
-                    // Agregar al mapa
-                    if (typeof addReport === 'function') {
-                        addReport(reportData);
-                    }
-
-                    // Actualizar toda la UI
-                    displayRecentReports(allReports.slice(-5).reverse());
-                    updateStats();
-                    updateChart();
-
-                    // Limpiar formulario
-                    reportForm.reset();
-
-                    // Mostrar notificación de éxito
-                    showAlert('✅ Reporte enviado correctamente', 'success');
-                });
-            }
+            displayRecentReports(filtered.slice(-5).reverse());
+            updateStats(filtered);
         }
 
-        // ===== CONFIGURAR BOTÓN LIMPIAR DATOS =====
-        function setupClearButton() {
-            document.getElementById('clearBtn').addEventListener('click', () => {
-                // Pedir confirmación antes de limpiar
-                if (confirm('¿Estás seguro de que deseas limpiar todos los datos?')) {
-                    // Eliminar datos del localStorage
-                    localStorage.removeItem('mibarrioseguro_reports');
-                    // Limpiar array
-                    allReports = [];
-                    // Recargar vista
-                    loadStoredReports();
-                    showAlert('Datos limpiados', 'info');
-                }
-            });
-        }
-
-        // ===== DESCARGA DE DATOS EN CSV =====
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            // Crear contenido CSV
-            const csv = "tipo,ubicacion,fecha,hora\n" +
-                allReports.map(r => `${r.type},"${r.location}",${r.date},${r.time}`).join('\n');
-
-            // Crear blob y descargar
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'reportes-seguridad.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
-        });
-
-        // ===== FUNCIÓN PARA MOSTRAR NOTIFICACIONES =====
         function showAlert(message, type = 'info') {
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
@@ -898,9 +1235,234 @@
             alertDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
             document.body.appendChild(alertDiv);
 
-            // Remover notificación después de 3 segundos
             setTimeout(() => alertDiv.remove(), 3000);
         }
+
+        // EVENT LISTENERS
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStoredReports();
+
+            // Map Base Selector
+            setTimeout(() => {
+                document.querySelectorAll('.map-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const mapType = card.dataset.map;
+
+                        Object.keys(mapLayers).forEach(key => {
+                            mapLayers[key].visible = (key === mapType);
+                        });
+
+                        document.querySelectorAll('.map-card').forEach(c => c.classList.remove('active'));
+                        card.classList.add('active');
+                    });
+                });
+            }, 500);
+
+            // Filters
+            document.querySelectorAll('.filter-chips .chip').forEach(chip => {
+                chip.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentFilter = e.target.dataset.filter;
+                    filterReports();
+                });
+            });
+
+            // Search
+            document.getElementById('searchLocation').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = allReports.filter(r =>
+                    r.location.toLowerCase().includes(query)
+                );
+                displayRecentReports(filtered.slice(-5).reverse());
+            });
+
+            // Form
+            const reportForm = document.getElementById('reportForm');
+            if (reportForm) {
+                reportForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+
+                    const reportData = {
+                        type: document.getElementById('reportType').value,
+                        location: document.getElementById('reportLocation').value,
+                        date: document.getElementById('reportDate').value,
+                        time: document.getElementById('reportTime').value,
+                        description: document.getElementById('reportDesc').value || ''
+                    };
+
+                    if (!reportData.type || !reportData.location || !reportData.date || !reportData.time) {
+                        showAlert('Por favor completa todos los campos', 'warning');
+                        return;
+                    }
+
+                    allReports.push({
+                        ...reportData,
+                        id: Date.now(),
+                        timestamp: new Date().toISOString()
+                    });
+
+                    localStorage.setItem('mibarrioseguro_reports', JSON.stringify(allReports));
+
+                    if (typeof addReport === 'function') {
+                        addReport(reportData);
+                    }
+
+                    displayRecentReports(allReports.slice(-5).reverse());
+                    updateStats();
+                    updateChart();
+
+                    reportForm.reset();
+                    showAlert('✅ Reporte enviado correctamente', 'success');
+                });
+            }
+
+            // Clear button
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                if (confirm('¿Estás seguro de que deseas limpiar todos los datos?')) {
+                    localStorage.removeItem('mibarrioseguro_reports');
+                    allReports = [];
+                    loadStoredReports();
+                    showAlert('Datos limpiados', 'info');
+                }
+            });
+
+            // Download button
+            document.getElementById('downloadBtn').addEventListener('click', () => {
+                const csv = "tipo,ubicacion,fecha,hora\n" +
+                    allReports.map(r => `${r.type},"${r.location}",${r.date},${r.time}`).join('\n');
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'reportes-seguridad.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+
+        });
+
+        // CHATBOT
+        const chatbotFab = document.createElement('button');
+        chatbotFab.className = 'chatbot-fab';
+        chatbotFab.innerHTML = '<i class="fas fa-comments"></i>';
+        chatbotFab.title = 'Abrir chat';
+        document.body.appendChild(chatbotFab);
+
+        const chatbotContainer = document.createElement('div');
+        chatbotContainer.className = 'chatbot-container closed';
+        chatbotContainer.innerHTML = `
+            <div class="chatbot-header">
+                <span class="chatbot-header-title">
+                    <i class="fas fa-shield-alt"></i> Seguridad Bogotá
+                </span>
+                <button class="chatbot-close-btn" title="Cerrar">−</button>
+            </div>
+            <div class="chatbot-messages" id="chatMessages"></div>
+            <div class="chatbot-input-area">
+                <input type="text" class="chatbot-input" id="chatInput" placeholder="Escribe tu pregunta...">
+                <button type="button" class="chatbot-send-btn" id="chatSendBtn">
+                    <span class="fold"></span>
+                    <div class="points_wrapper">
+                        <i class="point"></i>
+                        <i class="point"></i>
+                        <i class="point"></i>
+                        <i class="point"></i>
+                        <i class="point"></i>
+                        <i class="point"></i>
+                        <i class="point"></i>
+                        <i class="point"></i>
+                        <i class="point"></i>
+                        <i class="point"></i>
+                    </div>
+                    <span class="inner">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
+                            <polyline points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"></polyline>
+                        </svg>
+                        Enviar
+                    </span>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(chatbotContainer);
+
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const chatHeader = chatbotContainer.querySelector('.chatbot-header');
+        const chatCloseBtn = chatbotContainer.querySelector('.chatbot-close-btn');
+
+        const botResponses = {
+            'hola': '¡Hola! Soy el asistente de Mi Barrio Seguro. ¿Cómo puedo ayudarte?',
+            'ayuda': 'Puedo responder sobre:\n• Localidades peligrosas\n• Cómo usar la app\n• Consejos de seguridad\n• Estadísticas de delitos\n\n¿Qué te gustaría saber?',
+            'peligroso': 'Las zonas más peligrosas en Bogotá son:\n🔴 Ciudad Bolívar\n🔴 Santa Fe\n🔴 San Cristóbal\n🔴 Los Mártires\n🔴 Usme\n\nEvita transitar solo por estas áreas, especialmente de noche.',
+            'seguro': 'Las zonas más seguras son:\n🔵 Chapinero\n🔵 Fontibón\n🔵 Teusaquillo\n🔵 Engativá\n🔵 Sumapaz\n\n¡Estos barrios tienen menor índice de criminalidad!',
+            'reportar': 'Para reportar un incidente:\n1. Abre la pestaña "Reportar Incidente"\n2. Selecciona el tipo de delito\n3. Ingresa la ubicación y fecha\n4. Haz clic en "Enviar Reporte"\n\n¡Tu reporte nos ayuda a mantener segura la ciudad!',
+            'estadísticas': 'Puedes ver las estadísticas en la pestaña:\n• Total de reportes\n• Reportes de hoy\n• Zona crítica\n• Gráfico de delitos por tipo',
+            'mapa': 'El mapa de calor muestra:\n🔴 Rojo = Zonas muy peligrosas (alta densidad de delitos)\n🟡 Amarillo = Zonas moderadamente peligrosas\n🔵 Azul = Zonas seguras (baja densidad de delitos)',
+            'filtrar': 'Puedes filtrar reportes por:\n• Todos los delitos\n• Robo\n• Hurto\n• Asalto\n\nHaz clic en los filtros en la pestaña "Buscar & Filtrar"',
+            'consejos': 'Consejos de seguridad:\n✓ No lleves objetos de valor visibles\n✓ Evita zonas rojas después de las 8 PM\n✓ Mantén tus ojos alerta\n✓ Viaja acompañado si es posible\n✓ Reporta actividades sospechosas',
+            'localidades': 'Bogotá tiene 20 localidades. Las principales son:\n• Usaquén, Chapinero, Santa Fe\n• Suba, Barrios Unidos, Engativá\n• Teusaquillo, Los Mártires\n• Kennedy, Fontibón, Bosa\n\n¿Quieres saber sobre alguna en específico?'
+        };
+
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            messageDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getBotResponse(userText) {
+            const text = userText.toLowerCase();
+
+            for (const [key, response] of Object.entries(botResponses)) {
+                if (text.includes(key)) {
+                    return response;
+                }
+            }
+
+            return 'No entendí muy bien. Puedo ayudarte con:\n• "peligroso" - zonas peligrosas\n• "seguro" - zonas seguras\n• "reportar" - cómo reportar\n• "consejos" - consejos de seguridad\n• "ayuda" - más opciones';
+        }
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, true);
+            chatInput.value = '';
+
+            setTimeout(() => {
+                const response = getBotResponse(text);
+                addMessage(response, false);
+            }, 500);
+        }
+
+        chatSendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        chatbotFab.addEventListener('click', () => {
+            chatbotContainer.classList.toggle('closed');
+            chatbotFab.classList.toggle('hidden');
+            if (!chatbotContainer.classList.contains('closed')) {
+                setTimeout(() => chatInput.focus(), 100);
+                addMessage('¡Hola! ¿En qué puedo ayudarte?', false);
+            }
+        });
+
+        chatHeader.addEventListener('click', () => {
+            chatbotContainer.classList.toggle('closed');
+            chatbotFab.classList.toggle('hidden');
+        });
+
+        chatCloseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            chatbotContainer.classList.add('closed');
+            chatbotFab.classList.remove('hidden');
+        });
     </script>
 </body>
 </html>
